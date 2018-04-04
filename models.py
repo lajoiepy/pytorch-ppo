@@ -69,6 +69,7 @@ class Policy(nn.Module):
         self.action_mean.bias.data.mul_(0.0)
         self.action_log_std = nn.Parameter(torch.zeros(1, num_outputs))
         self.module_list_current = [self.affine1, self.affine2, self.action_mean, self.action_log_std]
+        #self.module_list_current = [self.affine1, self.affine2, self.affine3, self.action_mean, self.action_log_std]
 
         self.module_list_old = [None]*len(self.module_list_current) #self.affine1_old, self.affine2_old, self.action_mean_old, self.action_log_std_old]
         self.backup()
@@ -101,6 +102,11 @@ class Policy(nn.Module):
         if old:
             x = F.tanh(self.module_list_old[0](x))
             x = F.tanh(self.module_list_old[1](x))
+            
+            #x = F.tanh(self.module_list_old[2](x))
+            #action_mean = self.module_list_old[3](x)
+            #action_log_std = self.module_list_old[4].expand_as(action_mean)
+            #action_std = torch.exp(action_log_std)
 
             action_mean = self.module_list_old[2](x)
             action_log_std = self.module_list_old[3].expand_as(action_mean)
