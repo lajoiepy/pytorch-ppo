@@ -50,6 +50,13 @@ class Policy(nn.Module):
         self.affine1 = nn.Linear(num_inputs, 64)
         self.affine2 = nn.Linear(64, 64)
         self.action_mean = nn.Linear(64, num_outputs)
+        #self.affine1 = nn.Linear(num_inputs, 100)
+        #self.affine2 = nn.Linear(100, 50)
+        #self.affine3 = nn.Linear(50, 25)
+        #self.action_mean = nn.Linear(25, num_outputs)
+        #self.affine1 = nn.Linear(num_inputs, 400)
+        #self.affine2 = nn.Linear(400, 300)
+        #self.action_mean = nn.Linear(300, num_outputs)
         self.action_mean.weight.data.mul_(0.1)
         self.action_mean.bias.data.mul_(0.0)
         self.action_log_std = nn.Parameter(torch.zeros(1, num_outputs))
@@ -85,6 +92,7 @@ class Policy(nn.Module):
     def forward(self, x, old=False):
         x = F.tanh(self.affine1(x))
         x = F.tanh(self.affine2(x))
+        #x = F.tanh(self.affine3(x))
 
         action_mean = self.action_mean(x)
         action_log_std = self.action_log_std.expand_as(action_mean)
