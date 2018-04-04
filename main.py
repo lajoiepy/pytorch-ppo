@@ -1,3 +1,4 @@
+# Code based on https://github.com/tpbarron/pytorch-ppo
 import argparse
 import sys
 import math
@@ -8,6 +9,7 @@ import gym
 import numpy as np
 import scipy.optimize
 from gym import wrappers
+import csv
 
 import torch
 import torch.autograd as autograd
@@ -63,10 +65,17 @@ num_actions = env.action_space.shape[0]
 env.seed(args.seed)
 torch.manual_seed(args.seed)
 
+results_file = open('results.csv', 'w', newline='')
+results_writer = csv.writer(results_file, delimiter=',',
+                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
+results_writer.writerow(['Average reward'])
+
 if args.use_joint_pol_val:
+    print("ActorCritic")
     ac_net = ActorCritic(num_inputs, num_actions)
     opt_ac = optim.Adam(ac_net.parameters(), lr=0.001)
 else:
+    print("Policy")
     policy_net = Policy(num_inputs, num_actions)
     value_net = Value(num_inputs)
     opt_policy = optim.Adam(policy_net.parameters(), lr=0.001)
@@ -177,6 +186,7 @@ def update_params(batch):
     value_loss = (values - targets).pow(2.).mean()
     value_loss.backward()
     opt_value.step()
+               
 
     # kloldnew = policy_net.kl_old_new() # oldpi.pd.kl(pi.pd)
     # ent = policy_net.entropy() #pi.pd.entropy()
@@ -211,7 +221,7 @@ running_state = ZFilter((num_inputs,), clip=5)
 running_reward = ZFilter((1,), demean=False, clip=10)
 episode_lengths = []
 
-for i_episode in count(1):
+for i_episode in range(200):
     memory = Memory()
 
     num_steps = 0
@@ -256,6 +266,9 @@ for i_episode in count(1):
     else:
         update_params(batch)
 
+    #if reward_batch > 50:
+    #    args.render = True
+
     if i_episode % args.log_interval == 0:
-        print('Episode {}\tLast reward: {}\tAverage reward {:.2f}'.format(
-            i_episode, reward_sum, reward_batch))
+        print('Episode {}\tLast reward: {}\tAverage reward {:.2f}'.format(i_episode, reward_sum, reward_batch))
+        results_writer.writerow([reward_batch])

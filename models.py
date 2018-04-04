@@ -32,24 +32,14 @@ class ActorCritic(nn.Module):
             self.module_list_old[i] = copy.deepcopy(self.module_list_current[i])
 
     def forward(self, x, old=False):
-        if old:
-            x = F.tanh(self.module_list_old[0](x))
-            x = F.tanh(self.module_list_old[1](x))
+        x = F.tanh(self.affine1(x))
+        x = F.tanh(self.affine2(x))
 
-            action_mean = self.module_list_old[2](x)
-            action_log_std = self.module_list_old[3].expand_as(action_mean)
-            action_std = torch.exp(action_log_std)
+        action_mean = self.action_mean(x)
+        action_log_std = self.action_log_std.expand_as(action_mean)
+        action_std = torch.exp(action_log_std)
 
-            value = self.module_list_old[4](x)
-        else:
-            x = F.tanh(self.affine1(x))
-            x = F.tanh(self.affine2(x))
-
-            action_mean = self.action_mean(x)
-            action_log_std = self.action_log_std.expand_as(action_mean)
-            action_std = torch.exp(action_log_std)
-
-            value = self.value_head(x)
+        value = self.value_head(x)
 
         return action_mean, action_log_std, action_std, value
 
@@ -93,20 +83,12 @@ class Policy(nn.Module):
         return ent
 
     def forward(self, x, old=False):
-        if old:
-            x = F.tanh(self.module_list_old[0](x))
-            x = F.tanh(self.module_list_old[1](x))
+        x = F.tanh(self.affine1(x))
+        x = F.tanh(self.affine2(x))
 
-            action_mean = self.module_list_old[2](x)
-            action_log_std = self.module_list_old[3].expand_as(action_mean)
-            action_std = torch.exp(action_log_std)
-        else:
-            x = F.tanh(self.affine1(x))
-            x = F.tanh(self.affine2(x))
-
-            action_mean = self.action_mean(x)
-            action_log_std = self.action_log_std.expand_as(action_mean)
-            action_std = torch.exp(action_log_std)
+        action_mean = self.action_mean(x)
+        action_log_std = self.action_log_std.expand_as(action_mean)
+        action_std = torch.exp(action_log_std)
 
         return action_mean, action_log_std, action_std
 
