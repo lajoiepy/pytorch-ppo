@@ -99,15 +99,15 @@ class Policy(nn.Module):
 
     def forward(self, x, old=False):
         if old:
-            x = F.relu(self.module_list_old[0](x))
-            x = F.relu(self.module_list_old[1](x))
+            x = F.tanh(self.module_list_old[0](x))
+            x = F.tanh(self.module_list_old[1](x))
 
             action_mean = self.module_list_old[2](x)
             action_log_std = self.module_list_old[3].expand_as(action_mean)
             action_std = torch.exp(action_log_std)
         else:
-            x = F.relu(self.affine1(x))
-            x = F.relu(self.affine2(x))
+            x = F.tanh(self.affine1(x))
+            x = F.tanh(self.affine2(x))
             #x = F.tanh(self.affine3(x))
 
             action_mean = self.action_mean(x)
